@@ -18,10 +18,9 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-    ReadBufferSize:  1024,
-    WriteBufferSize: 1024,
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
-
 
 type MasterServer struct {
 	Port            string
@@ -32,7 +31,7 @@ type MasterServer struct {
 }
 
 func NewMasterServer(port string, chunkSize uint64) *MasterServer {
-	return &MasterServer{port, chunkSize, make(map[string]time.Time), "7000" ,sync.Mutex{}}
+	return &MasterServer{port, chunkSize, make(map[string]time.Time), "7000", sync.Mutex{}}
 }
 
 func (master *MasterServer) run() error {
@@ -44,19 +43,19 @@ func (master *MasterServer) run() error {
 	go master.registerListenToHeartbeat()
 	go master.registerViewEndpoint()
 	go func() {
-        for {
-            time.Sleep(5 * time.Second) // Check every 5 seconds
-            currentTime := time.Now()
-            for url, lastHeartbeat := range master.ChunkserverUrls {
+		for {
+			time.Sleep(5 * time.Second) // Check every 5 seconds
+			currentTime := time.Now()
+			for url, lastHeartbeat := range master.ChunkserverUrls {
 				if currentTime.Sub(lastHeartbeat) >= 5*time.Second {
 					master.Mutex.Lock()
-                    log.Println("No heartbeat received from URL:", url)
-                    delete(master.ChunkserverUrls, url)
+					log.Println("No heartbeat received from URL:", url)
+					delete(master.ChunkserverUrls, url)
 					master.Mutex.Unlock()
-                }
-            }
-        }
-    }()
+				}
+			}
+		}
+	}()
 	go master.RegisterRPCMethods()
 	if err := http.ListenAndServe(":"+master.Port, handler); err != nil {
 		log.Fatal(err)
@@ -89,13 +88,13 @@ func (master *MasterServer) registerUploadEndpoint() {
 		}
 
 		file := models.FileMetadata{
-			Id: primitive.NewObjectID(),
-			FileName: uploadReq.FileName, 
-			FileSize: uploadReq.FileSize, 
-			NumberOfChunks: numberOfChunks, 
-			Replicas: make([][]string, numberOfChunks), 
-			ClientId: "", 
-			SharedUser: []primitive.ObjectID{},
+			Id:             primitive.NewObjectID(),
+			FileName:       uploadReq.FileName,
+			FileSize:       uploadReq.FileSize,
+			NumberOfChunks: numberOfChunks,
+			Replicas:       make([][]string, numberOfChunks),
+			ClientId:       "",
+			SharedUser:     []primitive.ObjectID{},
 			FileIdentifier: fileIdentifier,
 		}
 		log.Print("==========Before Create ======")
@@ -122,12 +121,11 @@ func isPortAlive(ip string, port int) bool {
 	return true
 }
 
-
 func (master *MasterServer) isActiveChunk(url string) bool {
 	master.Mutex.Lock()
-    defer master.Mutex.Unlock()
-    _, exists := master.ChunkserverUrls[url]
-    return exists
+	defer master.Mutex.Unlock()
+	_, exists := master.ChunkserverUrls[url]
+	return exists
 }
 
 func (master *MasterServer) registerGetEndpoint() {
@@ -136,7 +134,7 @@ func (master *MasterServer) registerGetEndpoint() {
 		// metadata, ok := master.Files[fileIdentifier]
 		metadata, ok := models.GetFileById(fileIdentifier)
 
-		if ok != nil{
+		if ok != nil {
 			http.Error(w, fmt.Sprintf("file with identifier '%v' not found", fileIdentifier), http.StatusNotFound)
 			return
 		}
@@ -204,9 +202,6 @@ func (master *MasterServer) registerGetEndpoint() {
 // 	}))
 // }
 
-
-
-
 // Define your RPC server struct
 type RPCServer struct {
 	Master *MasterServer
@@ -230,7 +225,7 @@ func (rpc *RPCServer) ReportChunkUploadSuccess(req models.ChunkUploadSuccessRequ
 
 	// You can set a response if necessary
 	*reply = "Success"
-	
+
 	return nil
 }
 
@@ -247,15 +242,6 @@ func (master *MasterServer) RegisterRPCMethods() {
 	}
 }
 
-
-
-
-
-
-
-
-
-
 // func (master *MasterServer) registerRegisterChunkserverEndpoint() {
 // 	http.HandleFunc("/chunkserver", loggingMiddleware(func(w http.ResponseWriter, r *http.Request) {
 // 		log.Print("==========register chunkserver endpoint hit===================")
@@ -271,36 +257,35 @@ func (master *MasterServer) RegisterRPCMethods() {
 // 	}))
 // }
 
-
 func (master *MasterServer) registerListenToHeartbeat() {
-    http.HandleFunc("/heartbeat", func(w http.ResponseWriter, r *http.Request) {
-        conn, err := upgrader.Upgrade(w, r, nil)
-        if err != nil {
-            log.Println(err)
-            return
-        }
-        defer conn.Close()
+	http.HandleFunc("/heartbeat", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		defer conn.Close()
 
-		 for {
-            _, message, err := conn.ReadMessage()
-            if err != nil {
-                log.Println("read failed:", err)
-                return
-            }
-            var heartbeatMessage models.HeartbeatRequest
-            if err := json.Unmarshal(message, &heartbeatMessage); err != nil {
-                log.Println("error decoding heartbeat message:", err)
-                return
-            }
+		for {
+			_, message, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("read failed:", err)
+				return
+			}
+			var heartbeatMessage models.HeartbeatRequest
+			if err := json.Unmarshal(message, &heartbeatMessage); err != nil {
+				log.Println("error decoding heartbeat message:", err)
+				return
+			}
 
-            // Extract the port from the heartbeat message
+			// Extract the port from the heartbeat message
 			master.Mutex.Lock()
 			master.ChunkserverUrls[heartbeatMessage.Url] = time.Now()
 			master.Mutex.Unlock()
-            log.Println("=============== Received heartbeat from Location:", heartbeatMessage.Url, " ===============")
-        }
-        
-    })
+			log.Println("=============== Received heartbeat from Location:", heartbeatMessage.Url, " ===============")
+		}
+
+	})
 }
 
 func (master *MasterServer) registerViewEndpoint() {
@@ -318,26 +303,24 @@ func (master *MasterServer) registerViewEndpoint() {
 	}))
 }
 
+func enableCORS(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow requests from any origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		// Allow the GET, POST, and OPTIONS methods
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 
-func enableCORS(handler http.Handler) http.Handler { 
- return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { 
-  // Allow requests from any origin 
-  w.Header().Set("Access-Control-Allow-Origin", "*") 
- 
-  // Allow the GET, POST, and OPTIONS methods 
-  w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS") 
- 
-  // Allow the Content-Type header 
-  w.Header().Set("Access-Control-Allow-Headers", "Content-Type") 
- 
-  // If the request method is OPTIONS, return immediately with a 200 status code 
-  if r.Method == "OPTIONS" { 
-   w.WriteHeader(http.StatusOK) 
-   return 
-  } 
- 
-  // Call the next handler 
-  handler.ServeHTTP(w, r) 
- }) 
+		// Allow the Content-Type header
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// If the request method is OPTIONS, return immediately with a 200 status code
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Call the next handler
+		handler.ServeHTTP(w, r)
+	})
 }
