@@ -4,6 +4,7 @@ import (
 	"dfs/internal/config"
 	models "dfs/internal/models"
 	masterservice "dfs/internal/service/master_service"
+	"dfs/internal/utils"
 	"fmt"
 	"log"
 	"net"
@@ -52,28 +53,52 @@ func (master *MasterServer) run() error {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", master.environment.MasterServerPort))
 	if err != nil {
-		log.Fatal("Listener error: ", err)
+		panic(err)
 	}
 	log.Println("Server listening on port " + master.environment.MasterServerPort)
 	http.Serve(listener, mux)
-
 	return nil
 }
 
 func (master *MasterServer) UploadHandler(w http.ResponseWriter, r *http.Request) {
-	// var file models.FileMetadata
+	var uploadInit, err = utils.ReadJson[models.UploadInitRequest](r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	result, err := master.service.Upload(uploadInit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	utils.WriteJson(w, result)
 }
 
 func (master *MasterServer) ViewHandler(w http.ResponseWriter, r *http.Request) {
+	result, err := master.service.View()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	utils.WriteJson(w, result)
 }
 
 func (master *MasterServer) GetHandler(w http.ResponseWriter, r *http.Request) {
+	var fileId = r.URL.Query().Get("file")
+	if fileId == "" {
+		http.Error(w, "file id is required", http.StatusBadRequest)
+		return
+	}
+	result, err := master.service.Get(fileId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	utils.WriteJson(w, result)
 }
 
 func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Request) {
-	// var heartbeatMessage models.HeartbeatRequest
-	// err := json.NewDecoder(r.Body).Decode(&heartbeatMessage)
-	panic("not implemented")
+
 }
 
 func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
