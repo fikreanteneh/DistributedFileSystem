@@ -1,27 +1,29 @@
 package api
 
 import (
+	"dfs/internal/config"
+	chunkservice "dfs/internal/service/chunk_service"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 )
 
 type ChunkServer struct {
-	Master string
-	Port   string
-	Dir    string
+	environment *config.Environment
+	service     *chunkservice.ChunkService
 }
 
-func NewChunkServer(master string, port string, dir string) *ChunkServer {
-	return &ChunkServer{master, port, dir}
+func NewChunkServer(environment *config.Environment, service *chunkservice.ChunkService) *ChunkServer {
+	return &ChunkServer{environment, service}
 }
 
-func (chunkserver *ChunkServer) run() error {
+func (server *ChunkServer) run() error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/uploadChunk", chunkserver.UploadChunkHandler)
-	mux.HandleFunc("/getChunk", chunkserver.GetChunkHandler)
+	mux.HandleFunc("/uploadChunk", server.UploadChunkHandler)
+	mux.HandleFunc("/getChunk", server.GetChunkHandler)
 
-	listener, err := net.Listen("tcp", ":"+chunkserver.Port)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", server.environment.ChunkServerPort))
 	if err != nil {
 		log.Fatal("Listener error: ", err)
 	}
@@ -29,5 +31,5 @@ func (chunkserver *ChunkServer) run() error {
 	return nil
 }
 
-func (chunkserver *ChunkServer) UploadChunkHandler(w http.ResponseWriter, r *http.Request) {}
-func (chunkserver *ChunkServer) GetChunkHandler(w http.ResponseWriter, r *http.Request)    {}
+func (server *ChunkServer) UploadChunkHandler(w http.ResponseWriter, r *http.Request) {}
+func (server *ChunkServer) GetChunkHandler(w http.ResponseWriter, r *http.Request)    {}

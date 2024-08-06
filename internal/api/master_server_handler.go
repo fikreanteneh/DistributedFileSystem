@@ -1,8 +1,10 @@
 package api
 
 import (
+	"dfs/internal/config"
 	models "dfs/internal/models"
 	masterservice "dfs/internal/service/master_service"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -17,23 +19,29 @@ var upgrader = websocket.Upgrader{
 }
 
 type RPCListener struct {
-	service *masterservice.MasterService
+	environment *config.Environment
+	service     *masterservice.MasterService
 }
 
 type MasterServer struct {
-	Port     string
-	upgrader websocket.Upgrader
-	service  *masterservice.MasterService
+	environment *config.Environment
+	upgrader    *websocket.Upgrader
+	service     *masterservice.MasterService
+	rpcListener *RPCListener
 }
 
-func NewMasterServer(port string, rpcPort string, upgrader websocket.Upgrader, service *masterservice.MasterService) *MasterServer {
-	return &MasterServer{port, upgrader, service}
+func NewMasterServer(environment *config.Environment, service *masterservice.MasterService) *MasterServer {
+	return &MasterServer{
+		environment: environment,
+		service:     service,
+		upgrader:    &upgrader,
+		rpcListener: &RPCListener{environment: environment, service: service},
+	}
 }
 
 func (master *MasterServer) run() error {
 	mux := http.NewServeMux()
-	rpc.Register(RPCListener{service: master.service})
-
+	rpc.Register(master.rpcListener)
 	mux.HandleFunc("/upload", master.UploadHandler)
 	mux.HandleFunc("/view", master.ViewHandler)
 	mux.HandleFunc("/get", master.GetHandler)
@@ -42,12 +50,11 @@ func (master *MasterServer) run() error {
 
 	rpc.HandleHTTP()
 
-	listener, err := net.Listen("tcp", ":"+master.Port)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", master.environment.MasterServerPort))
 	if err != nil {
 		log.Fatal("Listener error: ", err)
 	}
-
-	log.Println("Server listening on port " + master.Port)
+	log.Println("Server listening on port " + master.environment.MasterServerPort)
 	http.Serve(listener, mux)
 
 	return nil
@@ -69,6 +76,6 @@ func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Requ
 	panic("not implemented")
 }
 
-func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetResponse) error {
+func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
 	panic("not implemented")
 }

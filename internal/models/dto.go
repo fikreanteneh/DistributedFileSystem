@@ -1,12 +1,10 @@
 package models
 
-
-
-type RegisterChunkserverRequest struct {
+type RegisterChunkServerRequest struct {
 	Url string `json:"url"`
 }
 
-type RegisterChunkserverResponse struct {
+type RegisterChunkServerResponse struct {
 }
 
 type UploadInitRequest struct {
@@ -18,24 +16,23 @@ type UploadInitResponse struct {
 	Identifier     string   `json:"identifier"`
 	ChunkSize      uint64   `json:"chunkSize"`
 	NumberOfChunks uint64   `json:"numberOfChunks"`
-	Chunkservers   []string `json:"chunkservers"`
+	ChunkServers   []string `json:"chunkServers"`
 }
 
 type ChunkUploadSuccessRequest struct {
 	ChunkIdentifier string `json:"chunkIdentifier"`
-	Chunkserver     string `json:"chunkserver"`
+	ChunkServer     string `json:"chunkServer"`
 }
 
-type GetResponse struct {
+type GetFileResponse struct {
 	FileName  string
 	Locations []string
 }
 
-
-type HeartbeatRequest struct {
-	Url string `json:"url"`
+type HeartbeatNotifier struct {
+	Url  string `json:"url"`
 	Port string `json:"port"`
-	Ip string `json:"ip"`
+	Ip   string `json:"ip"`
 }
 
 type ViewResponse struct {

@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"bytes"
@@ -18,9 +18,9 @@ import (
 
 func loggingMiddleware(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*") 
-  		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS") 
-  		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		x, err := httputil.DumpRequest(r, true)
 		if err != nil {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)

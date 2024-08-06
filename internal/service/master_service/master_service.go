@@ -16,7 +16,7 @@ func NewMasterService(chunkSize uint64) *MasterService {
 	return &MasterService{chunkSize, make(map[string]time.Time), sync.Mutex{}}
 }
 
-func (master *MasterService) HeartBeatListen(heartbeatMessage models.HeartbeatRequest) {
+func (master *MasterService) HeartBeatListen(heartbeatMessage models.HeartbeatNotifier) {
 	master.Mutex.Lock()
 	master.ChunkserverUrls[heartbeatMessage.Url] = time.Now()
 	master.Mutex.Unlock()
