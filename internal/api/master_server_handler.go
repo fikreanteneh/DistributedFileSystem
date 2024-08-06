@@ -5,6 +5,7 @@ import (
 	models "dfs/internal/models"
 	masterservice "dfs/internal/service/master_service"
 	"dfs/internal/utils"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -98,9 +99,31 @@ func (master *MasterServer) GetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("upgrade failed:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer conn.Close()
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("read failed:", err)
+			return
+		}
+		var heartbeatMessage models.HeartbeatNotifier
+		if err := json.Unmarshal(message, &heartbeatMessage); err != nil {
+			log.Println("error decoding heartbeat message:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		master.service.HeartBeatListen(&heartbeatMessage)
+		log.Println("=============== Received heartbeat from Location:", heartbeatMessage.Url, " ===============")
+	}
 
 }
 
 func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
-	panic("not implemented")
+	// panic("not implemented")
 }
