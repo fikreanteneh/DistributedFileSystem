@@ -19,8 +19,8 @@ func NewChunkServer(environment *config.Environment, service *service.ChunkServi
 
 func (server *ChunkServer) run() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/uploadChunk", server.UploadChunkHandler)
-	mux.HandleFunc("/getChunk", server.GetChunkHandler)
+	mux.HandleFunc("/upload_chunk", server.UploadChunkHandler)
+	mux.HandleFunc("/get_chunk", server.GetChunkHandler)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", server.environment.ChunkServerPort))
 	if err != nil {

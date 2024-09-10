@@ -47,7 +47,7 @@ func (master *MasterServer) run() {
 	mux.HandleFunc("/upload", master.UploadHandler)
 	mux.HandleFunc("/view", master.ViewHandler)
 	mux.HandleFunc("/get", master.GetHandler)
-	mux.HandleFunc("/heartbeat", master.HeratBeatHandler)
+	mux.HandleFunc("/heartbeat", master.HeartBeatHandler)
 	mux.Handle("/rpc", rpc.DefaultServer)
 
 	rpc.HandleHTTP()
@@ -97,7 +97,7 @@ func (master *MasterServer) GetHandler(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, result)
 }
 
-func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Request) {
+func (master *MasterServer) HeartBeatHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrade failed:", err)
@@ -124,5 +124,9 @@ func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
+	panic("not implemented")
+}
+
+func (rpc *RPCListener) ReplicationSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
 	panic("not implemented")
 }
