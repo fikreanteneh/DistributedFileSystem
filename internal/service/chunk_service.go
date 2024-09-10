@@ -1,4 +1,4 @@
-package chunkservice
+package service
 
 import (
 	"dfs/internal/config"

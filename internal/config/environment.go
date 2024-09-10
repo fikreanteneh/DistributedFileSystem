@@ -6,4 +6,5 @@ type Environment struct {
 	ChunkServerDIR   string
 	MasterServerPort string
 	ChunkServerPort  string
+	MongoURI         string
 }

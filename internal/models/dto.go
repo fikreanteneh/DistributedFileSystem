@@ -13,10 +13,10 @@ type UploadInitRequest struct {
 }
 
 type UploadInitResponse struct {
-	Identifier     string   `json:"identifier"`
-	ChunkSize      uint64   `json:"chunkSize"`
-	NumberOfChunks uint64   `json:"numberOfChunks"`
-	ChunkServers   []string `json:"chunkServers"`
+	Identifier     string `json:"identifier"`
+	ChunkSize      uint64 `json:"chunkSize"`
+	NumberOfChunks uint64 `json:"numberOfChunks"`
+	ChunkServer    string `json:"chunkServer"`
 }
 
 type ChunkUploadSuccessRequest struct {

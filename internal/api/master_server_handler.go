@@ -2,8 +2,8 @@ package api
 
 import (
 	"dfs/internal/config"
-	models "dfs/internal/models"
-	masterservice "dfs/internal/service/master_service"
+	"dfs/internal/models"
+	"dfs/internal/service"
 	"dfs/internal/utils"
 	"encoding/json"
 	"fmt"
@@ -22,17 +22,17 @@ var upgrader = websocket.Upgrader{
 
 type RPCListener struct {
 	environment *config.Environment
-	service     *masterservice.MasterService
+	service     *service.MasterService
 }
 
 type MasterServer struct {
 	environment *config.Environment
 	upgrader    *websocket.Upgrader
-	service     *masterservice.MasterService
+	service     *service.MasterService
 	rpcListener *RPCListener
 }
 
-func NewMasterServer(environment *config.Environment, service *masterservice.MasterService) *MasterServer {
+func NewMasterServer(environment *config.Environment, service *service.MasterService) *MasterServer {
 	return &MasterServer{
 		environment: environment,
 		service:     service,
@@ -41,7 +41,7 @@ func NewMasterServer(environment *config.Environment, service *masterservice.Mas
 	}
 }
 
-func (master *MasterServer) run() error {
+func (master *MasterServer) run() {
 	mux := http.NewServeMux()
 	rpc.Register(master.rpcListener)
 	mux.HandleFunc("/upload", master.UploadHandler)
@@ -58,7 +58,6 @@ func (master *MasterServer) run() error {
 	}
 	log.Println("Server listening on port " + master.environment.MasterServerPort)
 	http.Serve(listener, mux)
-	return nil
 }
 
 func (master *MasterServer) UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,5 +124,5 @@ func (master *MasterServer) HeratBeatHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (rpc *RPCListener) UploadSuccessful(args *models.ChunkUploadSuccessRequest, reply *models.GetFileResponse) error {
-	// panic("not implemented")
+	panic("not implemented")
 }

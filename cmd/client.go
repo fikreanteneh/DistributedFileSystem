@@ -2,7 +2,8 @@ package main
 
 import (
 	"bytes"
-	"dfs/src/models"
+	"dfs/internal/models"
+	"dfs/internal/utils"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -64,7 +65,7 @@ func (client *Client) initUpload(masterUrl string, filename string, filesize uin
 		FileSize: filesize,
 	}
 	var uploadResponse models.UploadInitResponse
-	err := postJson(masterUrl+"upload", &uploadRequest, &uploadResponse)
+	err := utils.postJson(masterUrl+"upload", &uploadRequest, &uploadResponse)
 	if err != nil {
 		return nil, err
 	}

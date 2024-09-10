@@ -3,11 +3,10 @@ package main
 import (
 	"log"
 	// "fmt"
+	"github.com/urfave/cli"
 	"os"
 	"sort"
 	"strings"
-
-	"github.com/urfave/cli"
 )
 
 func main() {
